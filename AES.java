@@ -1,6 +1,49 @@
+/*
+    Implementation of a 16-bit Mini-AES Algorithm
+    ------------------------------------------------
+    Author: [Benhatta mokhttar]
+    Date: [20-10.2024]
 
-// import java.util.ArrayList;
-import java.util.BitSet;
+    OVERVIEW:
+    This algorithm is a simplified, 16-bit version of the AES (Advanced Encryption Standard) algorithm. 
+    Designed to mimic the steps of the 128-bit AES, this miniature version follows the same core stages 
+    (SubBytes, ShiftRows, MixColumns, and AddRoundKey) but with a smaller S-Box table and key size 
+    for easier understanding and testing. AES is a symmetric encryption algorithm widely used in various 
+    security applications and protocols (e.g., TLS, VPNs, file encryption). 
+
+    OBJECTIVE:
+    The goal is to implement a basic 16-bit version of AES without any external help from the web or AI 
+    to fully understand the principles of the AES cipher. Once a working version is complete, the focus 
+    will shift to optimizing and analyzing the algorithm’s complexity for improved performance.
+
+    AES KEY VARIANTS:
+    Standard AES comes in three key sizes: 
+      - AES-128 (128-bit key)
+      - AES-192 (192-bit key)
+      - AES-256 (256-bit key)
+    Each version undergoes multiple transformation rounds depending on the key size, offering a balance 
+    of security and performance suited for different applications. This 16-bit Mini-AES implementation 
+    provides a simplified learning approach to grasp the algorithm’s structure before progressing to full-scale AES.
+
+    NOTE:
+    This Mini-AES lacks certain security elements of the full AES and is not suitable for real-world 
+    security applications. Its purpose is purely educational to demonstrate the steps of a block cipher.
+
+    STRUCTURE:
+    - Initial Key Expansion: Generates subkeys used in each round.
+    - SubBytes Transformation: Uses an S-Box substitution to enhance non-linearity.
+    - ShiftRows Transformation: Row shifting to provide diffusion.
+    - MixColumns Transformation: Matrix multiplication in GF(2^4) (for educational simplification).
+    - AddRoundKey: XOR operation between the current state and subkeys.
+    
+    FUTURE WORK:
+    - Improve computational complexity by optimizing loops and data handling.
+    - Extend to larger block sizes (e.g., 32 or 64 bits) before moving to 128-bit AES.
+    - Evaluate and implement side-channel resistance strategies.
+
+*/
+
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +63,8 @@ public class AES {
     // key matrix
     String[][] Key = { { "B", "2" }, { "C", "2" } };
 
-    // THe input is the matrix the plain text or the key  we are tranforming the values into
+    // THe input is the matrix the plain text or the key we are tranforming the
+    // values into
     // binary so we can do an XOR
     public Integer[][] toBinary(String[][] plainText) {
         Integer[][] binaryMatrix = new Integer[plainText.length][plainText.length];
