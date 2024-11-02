@@ -47,6 +47,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AES {
+    // TODO make it work column column now it working line by line (just do j insted
+    // of i)
+
     // mini aes only two rounds,key is a 16 bits length;
     int roundes = 2;
     // TODO add firs round key
@@ -78,7 +81,6 @@ public class AES {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
                 System.out.println(matrix[i][j]);
-                // the test of the binary
             }
         }
     }
@@ -95,27 +97,25 @@ public class AES {
     // values into
     // binary so we can do an XOR
     // DONE
-
     public Integer[][] toBinary(String[][] plainText) {
         Integer[][] binaryMatrix = new Integer[plainText.length][plainText.length];
-        BinaryValue.put("0", 0b0000);
-        BinaryValue.put("1", 0b0001);
-        BinaryValue.put("2", 0b0010);
-        BinaryValue.put("3", 0b0011);
-        BinaryValue.put("4", 0b0100);
-        BinaryValue.put("5", 0b0101);
-        BinaryValue.put("6", 0b0110);
-        BinaryValue.put("7", 0b0111);
-        BinaryValue.put("8", 0b1000);
-        BinaryValue.put("9", 0b1001);
-        BinaryValue.put("A", 0b1010);
-        BinaryValue.put("B", 0b1011);
-        BinaryValue.put("C", 0b1100);
-        BinaryValue.put("D", 0b1101);
-        BinaryValue.put("E", 0b1110);
-        BinaryValue.put("F", 0b1111);
+        BinaryValue.put("0", 0x0);
+        BinaryValue.put("1", 0x1);
+        BinaryValue.put("2", 0x2);
+        BinaryValue.put("3", 0x3);
+        BinaryValue.put("4", 0x4);
+        BinaryValue.put("5", 0x5);
+        BinaryValue.put("6", 0x6);
+        BinaryValue.put("7", 0x7);
+        BinaryValue.put("8", 0x8);
+        BinaryValue.put("9", 0x9);
+        BinaryValue.put("A", 0xA);
+        BinaryValue.put("B", 0xB);
+        BinaryValue.put("C", 0xC);
+        BinaryValue.put("D", 0xD);
+        BinaryValue.put("E", 0xE);
+        BinaryValue.put("F", 0xF);
         for (Map.Entry<String, Integer> entry : BinaryValue.entrySet()) {
-            Integer binaryValue = entry.getValue();
             for (int i = 0; i < plainText.length; i++) {
                 for (int j = 0; j < plainText[i].length; j++) {
                     if (plainText[i][j].equals(entry.getKey())) {
@@ -131,14 +131,20 @@ public class AES {
     // this function is going to do the xor operation (addsubkey phase)
     // The inputs are the matrix , the output is gonna be incha'Allah the new matrix
     // to pass it to NibbleSub funciton
+    // Done (Phase one of the algorithme )
     public Integer[][] addSubKey(String[][] plainText, String[][] key) {
         Integer[][] plainTextBinary = toBinary(plainText); // Convert plain text to binary integers
         Integer[][] keyBinary = toBinary(key); // Convert key to binary integers
 
         Integer[][] resultMatrix = new Integer[plainTextBinary.length][plainTextBinary[0].length];
-
-        for (int i = 0; i < plainTextBinary.length; i++) {
-            for (int j = 0; j < plainTextBinary[i].length; j++) {
+        /*
+         * {A,9} {B,2} A9B2 XOR BC22 ==> 10100010010010100
+         * xor
+         * 1011110000100010
+         * {2,4} {C,2}
+         */
+        for (int j = 0; j < plainTextBinary[0].length; j++) {
+            for (int i = 0; i < plainTextBinary.length; i++) {
                 resultMatrix[i][j] = plainTextBinary[i][j] ^ keyBinary[i][j];
             }
         }
@@ -149,7 +155,7 @@ public class AES {
     }
 
     // The input is the plain text after the addSubkey phase
-    // Done
+    // Done(Phase two of the algorithme)
     public String[][] NibbleSub(String[][] value) {
         // S-BOX Table
         NibbleSubTable.put("0", "E");
@@ -179,12 +185,31 @@ public class AES {
         return value;
     }
 
+    // TODO it working but make sure to make it better to work in large exemples
+    public String[][] shiftRows(String[][] NibbleSub_matrix) {
+        String[][] result = new String[NibbleSub_matrix.length][NibbleSub_matrix[0].length];
+        // we know that the length of the matrix is a 2*2
+        // swap the second line
+        result[0][0] = NibbleSub_matrix[0][0];
+        result[0][1] = NibbleSub_matrix[0][1];
+        result[1][0] = NibbleSub_matrix[1][1];
+        result[1][1] = NibbleSub_matrix[1][0];
+        display(result);
+        return result;
+    }
+
     public static void main(String[] args) {
         AES aes = new AES();
         String[][] plainText = { { "A", "9" }, { "2", "4" } };
         String[][] Key = { { "B", "2" }, { "C", "2" } };
-
-        Integer[][] test = aes.toBinary(plainText);
-        aes.toHexDisplay(aes.addSubKey(plainText, Key));
+        // Integer[][] test = aes.toBinary(plainText);
+        // aes.toHexDisplay(aes.addSubKey(plainText, Key));
+        aes.shiftRows(plainText);
     }
 }
+
+// Result of xor operation column by column
+// 1010 1001 0010 0100
+// 1011 0010 1100 0010
+// -------------------------
+// 0001 1011 1110 0110
