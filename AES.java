@@ -204,7 +204,6 @@ public class AES {
         String[][] Key = { { "B", "2" }, { "C", "2" } };
         // Integer[][] test = aes.toBinary(plainText);
         // aes.toHexDisplay(aes.addSubKey(plainText, Key));
-        aes.shiftRows(plainText);
     }
 }
 
