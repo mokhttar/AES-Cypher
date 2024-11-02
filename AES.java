@@ -43,7 +43,6 @@
 
 */
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,7 +50,6 @@ public class AES {
     // mini aes only two rounds,key is a 16 bits length;
     int roundes = 2;
     // TODO add firs round key
-
     // a hash map to store the sbox table
     HashMap<String, String> NibbleSubTable = new HashMap<String, String>();
     // hash map have the decimal value with the value into binary
@@ -63,9 +61,41 @@ public class AES {
     // key matrix
     String[][] Key = { { "B", "2" }, { "C", "2" } };
 
+    // function to display the s-box matrix
+    // DONE
+    public void display(String[][] matrix) {
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                // System.out.println(matrix[i][j].toBinaryString(matrix[i][j])); //this is for
+                // the test of the binary
+                System.out.println(matrix[i][j]);
+            }
+        }
+    }
+
+    // only for debugin to see the result of to binary funciton
+    public void displayBinary(Integer[][] matrix) {
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                System.out.println(matrix[i][j]);
+                // the test of the binary
+            }
+        }
+    }
+
+    public void toHexDisplay(Integer[][] matrix) {
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                System.out.print(Integer.toHexString(matrix[i][j]));
+            }
+        }
+    }
+
     // THe input is the matrix the plain text or the key we are tranforming the
     // values into
     // binary so we can do an XOR
+    // DONE
+
     public Integer[][] toBinary(String[][] plainText) {
         Integer[][] binaryMatrix = new Integer[plainText.length][plainText.length];
         BinaryValue.put("0", 0b0000);
@@ -88,41 +118,38 @@ public class AES {
             Integer binaryValue = entry.getValue();
             for (int i = 0; i < plainText.length; i++) {
                 for (int j = 0; j < plainText[i].length; j++) {
-                    if (plainText[i][j].toString() == entry.getKey()) {
-                        binaryMatrix[i][j] = binaryValue;
+                    if (plainText[i][j].equals(entry.getKey())) {
+                        binaryMatrix[i][j] = BinaryValue.get(plainText[i][j]);
                     }
-
                 }
             }
         }
+
         return binaryMatrix;
     }
 
     // this function is going to do the xor operation (addsubkey phase)
     // The inputs are the matrix , the output is gonna be incha'Allah the new matrix
     // to pass it to NibbleSub funciton
+    public Integer[][] addSubKey(String[][] plainText, String[][] key) {
+        Integer[][] plainTextBinary = toBinary(plainText); // Convert plain text to binary integers
+        Integer[][] keyBinary = toBinary(key); // Convert key to binary integers
 
-    public void addSubKey(String[][] plainText, String[][] key) {
+        Integer[][] resultMatrix = new Integer[plainTextBinary.length][plainTextBinary[0].length];
 
-        // Note the key is a 16bit.
-        int matrix_length = plainText.length;
-        Integer[][] binaryMatrix = new Integer[matrix_length][matrix_length];
-        Integer[][] binaryKey = new Integer[key.length][key.length];// this size it dose not matter to me because it a
-                                                                    // 2*2 matrix
-        Integer[][] result = new Integer[plainText.length][plainText.length];
-        binaryMatrix = toBinary(plainText);
-        binaryKey = toBinary(key);
-        for (int i = 0; i < plainText.length; i++) {
-            for (int j = 0; j < plainText[i].length; j++) {
-                result[i][j] = binaryMatrix[i][j] ^ binaryKey[i][j]; // check if the XOR symbole is like that
-                // display to see the result
-                System.out.print(result[i][j]);
+        for (int i = 0; i < plainTextBinary.length; i++) {
+            for (int j = 0; j < plainTextBinary[i].length; j++) {
+                resultMatrix[i][j] = plainTextBinary[i][j] ^ keyBinary[i][j];
             }
         }
+
+        System.out.println("Result of AddRoundKey (XOR operation):");
+        displayBinary(resultMatrix);
+        return resultMatrix;
     }
 
-    // DONE
     // The input is the plain text after the addSubkey phase
+    // Done
     public String[][] NibbleSub(String[][] value) {
         // S-BOX Table
         NibbleSubTable.put("0", "E");
@@ -141,38 +168,23 @@ public class AES {
         NibbleSubTable.put("D", "9");
         NibbleSubTable.put("E", "0");
         NibbleSubTable.put("F", "7");
-        for (Map.Entry<String, String> entry : NibbleSubTable.entrySet()) {
-            for (int i = 0; i < value.length; i++) {
-                for (int j = 0; j < value[i].length; j++) {
-                    if (value[i][j] == entry.getKey()) {
-                        String new_value = entry.getValue();
-                        value[i][j] = new_value;
-                    }
+        for (int i = 0; i < value.length; i++) {
+            for (int j = 0; j < value[i].length; j++) {
+                String current_value = value[i][j];
+                if (NibbleSubTable.containsKey(current_value)) {
+                    value[i][j] = NibbleSubTable.get(current_value);
                 }
             }
         }
         return value;
     }
 
-    // function to display the s-box matrix
-    // DONE
-    public void display(Integer[][] matrix) {
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                System.out.println(matrix[i][j].toBinaryString(matrix[i][j]));
-            }
-        }
-    }
-
     public static void main(String[] args) {
         AES aes = new AES();
         String[][] plainText = { { "A", "9" }, { "2", "4" } };
-        // test Tobinaryfuntion(this function is transfomring the input of the plain
-        // matrix or any matrix to it binary values
-        Integer[][] test = aes.toBinary(plainText);
-        aes.display(test);
+        String[][] Key = { { "B", "2" }, { "C", "2" } };
 
-        // THIS IS THE NEW MATRIX AFTER THE NIBBLE SUB
-        // String[][] BubbleMatrix = aes.NibbleSub(plainText);
+        Integer[][] test = aes.toBinary(plainText);
+        aes.toHexDisplay(aes.addSubKey(plainText, Key));
     }
 }
