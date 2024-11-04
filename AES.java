@@ -93,6 +93,26 @@ public class AES {
         }
     }
 
+    // multiply Matrix ;
+    // Done it working (//TODO it multipling column*ligne (Integer*Integer) you
+    // should transform it to polynoms before doing the multiplication.)
+    public static Integer[][] multiplyMatrices(Integer[][] A, Integer[][] B) {
+        Integer m = A.length;
+        Integer n = A[0].length;
+        Integer p = B[0].length;
+        Integer[][] C = new Integer[m][p];
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < p; j++) {
+                C[i][j] = 0;
+                for (int k = 0; k < n; k++) {
+                    C[i][j] += A[i][k] * B[k][j];
+                }
+            }
+        }
+        return C;
+    }
+
     // THe input is the matrix the plain text or the key we are tranforming the
     // values into
     // binary so we can do an XOR
@@ -124,7 +144,6 @@ public class AES {
                 }
             }
         }
-
         return binaryMatrix;
     }
 
@@ -148,7 +167,6 @@ public class AES {
                 resultMatrix[i][j] = plainTextBinary[i][j] ^ keyBinary[i][j];
             }
         }
-
         System.out.println("Result of AddRoundKey (XOR operation):");
         displayBinary(resultMatrix);
         return resultMatrix;
@@ -194,6 +212,7 @@ public class AES {
         result[0][1] = NibbleSub_matrix[0][1];
         result[1][0] = NibbleSub_matrix[1][1];
         result[1][1] = NibbleSub_matrix[1][0];
+
         display(result);
         return result;
     }
@@ -202,7 +221,12 @@ public class AES {
         AES aes = new AES();
         String[][] plainText = { { "A", "9" }, { "2", "4" } };
         String[][] Key = { { "B", "2" }, { "C", "2" } };
-        // Integer[][] test = aes.toBinary(plainText);
+        String[][] MixColumsMatrix = { { "3", "2" }, { "2", "3" } };
+
+        // matrix to test my funciton of multiplying
+        Integer[][] a = { { 1, 2 }, { 2, 3 } };
+        Integer[][] b = { { 2, 3 }, { 3, 4 } };
+
         // aes.toHexDisplay(aes.addSubKey(plainText, Key));
     }
 }
