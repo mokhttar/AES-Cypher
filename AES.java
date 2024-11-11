@@ -71,46 +71,105 @@ public class AES {
             for (int j = 0; j < matrix[i].length; j++) {
                 // System.out.println(matrix[i][j].toBinaryString(matrix[i][j])); //this is for
                 // the test of the binary
-                System.out.println(matrix[i][j]);
+                System.out.print(matrix[i][j]);
             }
         }
     }
 
-    // only for debugin to see the result of to binary funciton
     public void displayBinary(Integer[][] matrix) {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
-                System.out.println(matrix[i][j]);
+                System.out.print(matrix[i][j]);
             }
         }
     }
 
-    public void toHexDisplay(Integer[][] matrix) {
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                System.out.print(Integer.toHexString(matrix[i][j]));
-            }
-        }
-    }
+    // public void MixColumns(String shiftRowsMatrix[][], String ConstantMatrix[][])
+    // {
 
-    // multiply Matrix ;
-    // Done it working (//TODO it multipling column*ligne (Integer*Integer) you
-    // should transform it to polynoms before doing the multiplication.)
-    public static Integer[][] multiplyMatrices(Integer[][] A, Integer[][] B) {
-        Integer m = A.length;
-        Integer n = A[0].length;
-        Integer p = B[0].length;
-        Integer[][] C = new Integer[m][p];
+    // String[][] PolyNomeMatrix = new String[2][2];
 
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < p; j++) {
-                C[i][j] = 0;
-                for (int k = 0; k < n; k++) {
-                    C[i][j] += A[i][k] * B[k][j];
+    // // transform each cell into a polynome
+    // for (int i = 0; i < shiftRowsMatrix.length; i++) {
+    // for (int j = 0; j < shiftRowsMatrix[i].length; j++) {
+    // PolyNomeMatrix[i][j]={}
+
+    // }
+    // }
+    // }
+
+    // public void MixColumns(String[][] shiftRowsMatrix, String[][] ConstantMatrix)
+    // {
+    // String[][] PolyNomeMatrix = new String[2][2];
+
+    // // Convert each hex value in shiftRowsMatrix to polynomial binary form
+    // for (int i = 0; i < shiftRowsMatrix.length; i++) {
+    // for (int j = 0; j < shiftRowsMatrix[i].length; j++) {
+    // // Convert hex to binary (polynomial form)
+    // PolyNomeMatrix[i][j] = hexToPolynomial(shiftRowsMatrix[i][j]);
+    // }
+    // }
+
+    // // Display the polynomial matrix for debugging
+    // System.out.println("Polynomial representation of shiftRowsMatrix:");
+    // for (int i = 0; i < PolyNomeMatrix.length; i++) {
+    // for (int j = 0; j < PolyNomeMatrix[i].length; j++) {
+    // System.out.print(PolyNomeMatrix[i][j] + " ");
+    // }
+    // System.out.println();
+    // }
+    // }
+
+    public void MixColumns(String[][] shiftRowsMatrix, String[][] ConstantMatrix) {
+        int[][] resultMatrix = new int[2][2];
+
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < 2; j++) { // Columns of shiftRowsMatrix
+                int sum = 0;
+                for (int k = 0; k < 2; k++) {
+                    int a = Integer.parseInt(shiftRowsMatrix[k][j], 16); // hex to decimal
+                    int b = Integer.parseInt(ConstantMatrix[i][k], 16); // hex to decimal
+                    sum ^= multiplyInGF(a, b); // GF(2^4) multiplication with XOR accumulation
                 }
+                resultMatrix[i][j] = sum;
             }
         }
-        return C;
+
+        // Display the result matrix
+        System.out.println("Resulting MixColumns Matrix:");
+        for (int i = 0; i < resultMatrix.length; i++) {
+            for (int j = 0; j < resultMatrix[i].length; j++) {
+                System.out.printf("%02X ", resultMatrix[i][j]); // Print in hex format
+            }
+            System.out.println();
+        }
+    }
+
+    // Helper function to multiply two elements in GF(2^4)
+    private int multiplyInGF(int a, int b) {
+        int result = 0;
+        int irreduciblePolynomial = 0b10011;
+
+        while (b > 0) {
+            if ((b & 1) != 0) {
+                result ^= a;
+            }
+            a <<= 1;
+            if ((a & 0b10000) != 0) {
+                a ^= irreduciblePolynomial;
+            }
+            b >>= 1;
+        }
+        return result & 0xF;
+    }
+
+    // Helper function to convert hex string to polynomial binary representation
+    private String hexToPolynomial(String hexValue) {
+        // Convert hex to integer
+        int decimal = Integer.parseInt(hexValue, 16);
+        // Convert integer to binary string and pad to 4 bits
+        String binary = Integer.toBinaryString(decimal);
+        return String.format("%4s", binary).replace(' ', '0'); // Ensure 4-bit length
     }
 
     // THe input is the matrix the plain text or the key we are tranforming the
@@ -200,6 +259,7 @@ public class AES {
                 }
             }
         }
+        display(value);
         return value;
     }
 
@@ -218,17 +278,25 @@ public class AES {
     }
 
     public static void main(String[] args) {
-        AES aes = new AES();
-        String[][] plainText = { { "A", "9" }, { "2", "4" } };
-        String[][] Key = { { "B", "2" }, { "C", "2" } };
-        String[][] MixColumsMatrix = { { "3", "2" }, { "2", "3" } };
+        AES miniAES = new AES();
+        String[][] ConstantMatrix = {
+                { "2", "3" },
+                { "3", "2" }
+        };
+        // Convert PlainText and Key to binary and apply AddRoundKey
+        Integer[][] xorResult = miniAES.addSubKey(miniAES.plainText, miniAES.Key);
+        // Substitute using NibbleSub transformation
+        System.out.println("\nNibble Sub result:");
+        String[][] nibbleSubResult = miniAES.NibbleSub(miniAES.plainText);
+        // Shift row
+        System.out.println("\nShift Rows result:");
+        String[][] shiftRowsResult = miniAES.shiftRows(nibbleSubResult);
 
-        // matrix to test my funciton of multiplying
-        Integer[][] a = { { 1, 2 }, { 2, 3 } };
-        Integer[][] b = { { 2, 3 }, { 3, 4 } };
+        System.out.println("\n Mix Colums result:");
+        miniAES.MixColumns(shiftRowsResult, ConstantMatrix);
 
-        // aes.toHexDisplay(aes.addSubKey(plainText, Key));
     }
+
 }
 
 // Result of xor operation column by column
