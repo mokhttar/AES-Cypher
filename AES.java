@@ -40,7 +40,6 @@
     - Improve computational complexity by optimizing loops and data handling.
     - Extend to larger block sizes (e.g., 32 or 64 bits) before moving to 128-bit AES.
     - Evaluate and implement side-channel resistance strategies.
-
 */
 
 import java.util.HashMap;
@@ -60,9 +59,15 @@ public class AES {
 
     String[][] s_boxValue = new String[2][2];
     // Plain text matrx
-    String[][] plainText = { { "A", "9" }, { "2", "4" } };
+    String[][] plainText = { { "9", "6" }, { "C", "3" } };
+
     // key matrix
-    String[][] Key = { { "B", "2" }, { "C", "2" } };
+    String[][] Key = { { "C", "F" }, { "3", "0" } };
+    // Constant Matrix for mixColumns
+    String[][] ConstantMatrix = {
+            { "3", "2" },
+            { "2", "3" }
+    };
 
     // function to display the s-box matrix
     // DONE
@@ -71,7 +76,7 @@ public class AES {
             for (int j = 0; j < matrix[i].length; j++) {
                 // System.out.println(matrix[i][j].toBinaryString(matrix[i][j])); //this is for
                 // the test of the binary
-                System.out.print(matrix[i][j]);
+                System.out.println(matrix[i][j]);
             }
         }
     }
@@ -79,74 +84,36 @@ public class AES {
     public void displayBinary(Integer[][] matrix) {
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
-                System.out.print(matrix[i][j]);
+                System.out.println(matrix[i][j]);
             }
         }
     }
 
-    // public void MixColumns(String shiftRowsMatrix[][], String ConstantMatrix[][])
-    // {
-
-    // String[][] PolyNomeMatrix = new String[2][2];
-
-    // // transform each cell into a polynome
-    // for (int i = 0; i < shiftRowsMatrix.length; i++) {
-    // for (int j = 0; j < shiftRowsMatrix[i].length; j++) {
-    // PolyNomeMatrix[i][j]={}
-
-    // }
-    // }
-    // }
-
-    // public void MixColumns(String[][] shiftRowsMatrix, String[][] ConstantMatrix)
-    // {
-    // String[][] PolyNomeMatrix = new String[2][2];
-
-    // // Convert each hex value in shiftRowsMatrix to polynomial binary form
-    // for (int i = 0; i < shiftRowsMatrix.length; i++) {
-    // for (int j = 0; j < shiftRowsMatrix[i].length; j++) {
-    // // Convert hex to binary (polynomial form)
-    // PolyNomeMatrix[i][j] = hexToPolynomial(shiftRowsMatrix[i][j]);
-    // }
-    // }
-
-    // // Display the polynomial matrix for debugging
-    // System.out.println("Polynomial representation of shiftRowsMatrix:");
-    // for (int i = 0; i < PolyNomeMatrix.length; i++) {
-    // for (int j = 0; j < PolyNomeMatrix[i].length; j++) {
-    // System.out.print(PolyNomeMatrix[i][j] + " ");
-    // }
-    // System.out.println();
-    // }
-    // }
-
-    public void MixColumns(String[][] shiftRowsMatrix, String[][] ConstantMatrix) {
+    public int[][] MixColumns(String[][] shiftRowsMatrix, String[][] ConstantMatrix) {
         int[][] resultMatrix = new int[2][2];
 
         for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < 2; j++) { // Columns of shiftRowsMatrix
+            for (int j = 0; j < 2; j++) {
                 int sum = 0;
                 for (int k = 0; k < 2; k++) {
-                    int a = Integer.parseInt(shiftRowsMatrix[k][j], 16); // hex to decimal
-                    int b = Integer.parseInt(ConstantMatrix[i][k], 16); // hex to decimal
-                    sum ^= multiplyInGF(a, b); // GF(2^4) multiplication with XOR accumulation
+                    int a = Integer.parseInt(shiftRowsMatrix[k][j], 16);
+                    int b = Integer.parseInt(ConstantMatrix[i][k], 16);
+                    sum ^= multiplyInGF(a, b);
                 }
                 resultMatrix[i][j] = sum;
             }
         }
-
-        // Display the result matrix
         System.out.println("Resulting MixColumns Matrix:");
         for (int i = 0; i < resultMatrix.length; i++) {
             for (int j = 0; j < resultMatrix[i].length; j++) {
-                System.out.printf("%02X ", resultMatrix[i][j]); // Print in hex format
+                System.out.printf("%02X ", resultMatrix[i][j]);
             }
             System.out.println();
         }
+        return resultMatrix;
     }
 
-    // Helper function to multiply two elements in GF(2^4)
-    private int multiplyInGF(int a, int b) {
+    public int multiplyInGF(int a, int b) {
         int result = 0;
         int irreduciblePolynomial = 0b10011;
 
@@ -160,6 +127,7 @@ public class AES {
             }
             b >>= 1;
         }
+        // format the result into hex
         return result & 0xF;
     }
 
@@ -215,19 +183,20 @@ public class AES {
         Integer[][] keyBinary = toBinary(key); // Convert key to binary integers
 
         Integer[][] resultMatrix = new Integer[plainTextBinary.length][plainTextBinary[0].length];
-        /*
-         * {A,9} {B,2} A9B2 XOR BC22 ==> 10100010010010100
-         * xor
-         * 1011110000100010
-         * {2,4} {C,2}
-         */
+
         for (int j = 0; j < plainTextBinary[0].length; j++) {
             for (int i = 0; i < plainTextBinary.length; i++) {
                 resultMatrix[i][j] = plainTextBinary[i][j] ^ keyBinary[i][j];
             }
         }
-        System.out.println("Result of AddRoundKey (XOR operation):");
-        displayBinary(resultMatrix);
+        System.out.println("Result of Add Sub Round Key is:");
+        for (int i = 0; i < resultMatrix.length; i++) {
+            for (int j = 0; j < resultMatrix[i].length; j++) {
+                System.out.print("" + Integer.toHexString(resultMatrix[i][j]).toUpperCase());
+            }
+            System.err.println(" ");
+        }
+
         return resultMatrix;
     }
 
@@ -251,56 +220,305 @@ public class AES {
         NibbleSubTable.put("D", "9");
         NibbleSubTable.put("E", "0");
         NibbleSubTable.put("F", "7");
+
+        String result[][] = new String[2][2];
         for (int i = 0; i < value.length; i++) {
-            for (int j = 0; j < value[i].length; j++) {
+            for (int j = 0; j < value[i].length; j++) { // Corrected the loop to match the actual columns
                 String current_value = value[i][j];
-                if (NibbleSubTable.containsKey(current_value)) {
-                    value[i][j] = NibbleSubTable.get(current_value);
+                // Using equals to compare the current value with the key in the NibbleSubTable
+                if (NibbleSubTable.containsKey(current_value.toString())) {
+                    result[i][j] = NibbleSubTable.get(current_value);
                 }
             }
         }
-        display(value);
+        // display the reuslt
+        System.out.println("Result of NiblleSub is:");
+        for (int i = 0; i < result.length; i++) {
+            for (int j = 0; j < result[i].length; j++) {
+                System.out.print(result[i][j]);
+            }
+            System.out.println(" ");
+        }
+        return result;
+    }
+
+    public String[][] INVNibbleSub(String[][] value) {
+        // S-BOX Table
+        NibbleSubTable.put("E", "0");
+        NibbleSubTable.put("4", "1");
+        NibbleSubTable.put("D", "2");
+        NibbleSubTable.put("1", "3");
+        NibbleSubTable.put("2", "4");
+        NibbleSubTable.put("F", "5");
+        NibbleSubTable.put("B", "6");
+        NibbleSubTable.put("8", "7");
+        NibbleSubTable.put("3", "8");
+        NibbleSubTable.put("A", "9");
+        NibbleSubTable.put("6", "A");
+        NibbleSubTable.put("C", "B");
+        NibbleSubTable.put("5", "C");
+        NibbleSubTable.put("9", "D");
+        NibbleSubTable.put("0", "E");
+        NibbleSubTable.put("7", "F");
+
+        String result[][] = new String[2][2];
+        for (int i = 0; i < value.length; i++) {
+            for (int j = 0; j < value[i].length; j++) { // Corrected the loop to match the actual columns
+                String current_value = value[i][j];
+                // Using equals to compare the current value with the key in the NibbleSubTable
+                if (NibbleSubTable.containsValue(current_value.toString())) {
+                    result[i][j] = NibbleSubTable.get(current_value);
+                }
+            }
+        }
+        // display the reuslt
+        System.out.println("Result of NiblleSub is:");
+        for (int i = 0; i < result.length; i++) {
+            for (int j = 0; j < result[i].length; j++) {
+                System.out.print(result[i][j]);
+            }
+            System.out.println(" ");
+        }
+        return result;
+    }
+
+    public String NibbleSubValue(String value) {
+        // S-BOX Table
+        NibbleSubTable.put("0", "E");
+        NibbleSubTable.put("1", "4");
+        NibbleSubTable.put("2", "D");
+        NibbleSubTable.put("3", "1");
+        NibbleSubTable.put("4", "2");
+        NibbleSubTable.put("5", "F");
+        NibbleSubTable.put("6", "B");
+        NibbleSubTable.put("7", "8");
+        NibbleSubTable.put("8", "3");
+        NibbleSubTable.put("9", "A");
+        NibbleSubTable.put("A", "6");
+        NibbleSubTable.put("B", "C");
+        NibbleSubTable.put("C", "5");
+        NibbleSubTable.put("D", "9");
+        NibbleSubTable.put("E", "0");
+        NibbleSubTable.put("F", "7");
+        String current_value = value;
+        if (NibbleSubTable.containsKey(current_value)) {
+            value = NibbleSubTable.get(current_value);
+        }
+        System.out.println(value);
         return value;
     }
 
     // TODO it working but make sure to make it better to work in large exemples
     public String[][] shiftRows(String[][] NibbleSub_matrix) {
         String[][] result = new String[NibbleSub_matrix.length][NibbleSub_matrix[0].length];
-        // we know that the length of the matrix is a 2*2
-        // swap the second line
         result[0][0] = NibbleSub_matrix[0][0];
         result[0][1] = NibbleSub_matrix[0][1];
         result[1][0] = NibbleSub_matrix[1][1];
         result[1][1] = NibbleSub_matrix[1][0];
 
-        display(result);
+        // display the reuslt
+        System.out.println("Shit Rows resutl:");
+        for (int i = 0; i < result.length; i++) {
+            for (int j = 0; j < result[i].length; j++) {
+                System.out.print(result[i][j]);
+            }
+            System.out.println("");
+        }
         return result;
+    }
+
+    public String InvNibbleSubValue(String value) {
+        // S-BOX Table
+        NibbleSubTable.put("0", "E");
+        NibbleSubTable.put("1", "4");
+        NibbleSubTable.put("2", "D");
+        NibbleSubTable.put("3", "1");
+        NibbleSubTable.put("4", "2");
+        NibbleSubTable.put("5", "F");
+        NibbleSubTable.put("6", "B");
+        NibbleSubTable.put("7", "8");
+        NibbleSubTable.put("8", "3");
+        NibbleSubTable.put("9", "A");
+        NibbleSubTable.put("A", "6");
+        NibbleSubTable.put("B", "C");
+        NibbleSubTable.put("C", "5");
+        NibbleSubTable.put("D", "9");
+        NibbleSubTable.put("E", "0");
+        NibbleSubTable.put("F", "7");
+        String current_value = value;
+        if (NibbleSubTable.containsValue(current_value)) {
+            value = NibbleSubTable.get(current_value);
+            System.out.println(value);
+        }
+        System.out.println(value);
+        return value;
+    }
+
+    public String[] KeyGeneration(String[][] Key) {
+        String[] words = new String[12];
+
+        // RCON values
+        String reconOne = "1";
+        String reconTwo = "2";
+
+        for (int i = 0; i < Key.length; i++) {
+            for (int j = 0; j < Key[i].length; j++) {
+                words[i * Key[i].length + j] = Key[j][i];
+            }
+        }
+        // First round keys
+        String r1 = xorHex(words[0], NibbleSubValue(words[3]));
+        System.out.println(r1);
+        String r2 = xorHex(r1, reconOne);
+        System.out.println(r2);
+
+        words[4] = r2;
+        words[5] = xorHex(words[1], words[4]);
+        words[6] = xorHex(words[2], words[5]);
+        words[7] = xorHex(words[3], words[6]);
+
+        // Second round keys
+        String r3 = xorHex(words[4], NibbleSubValue(words[7]));
+        System.out.println(r3);
+        String r4 = xorHex(r3, reconTwo);
+        System.out.println(r4);
+
+        words[8] = r4;
+        words[9] = xorHex(words[5], words[8]);
+        words[10] = xorHex(words[6], words[9]);
+        words[11] = xorHex(words[7], words[10]);
+
+        // Display generated keys
+        System.out.println("Generated Keys:");
+        for (int i = 0; i < words.length; i++) {
+            System.out.println("Word " + i + ": " + words[i]);
+        }
+
+        return words;
+
+    }
+
+    // method to cast Integer[][] to Stringp[][]
+    public String[][] castToString(Integer[][] matrix) {
+        String[][] result = new String[matrix.length][matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[i].length; j++) {
+                result[i][j] = Integer.toHexString(matrix[i][j]).toUpperCase();
+            }
+        }
+
+        return result;
+    }
+
+    // method to cast int to Integer[][]
+    public Integer[][] castToInteger(int[][] matrix) {
+        Integer[][] castResult = new Integer[matrix.length][matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++) {
+                castResult[i][j] = Integer.valueOf(matrix[i][j]);
+            }
+        }
+
+        return castResult;
+    }
+
+    // XOR two hexadecimal strings
+    private String xorHex(String hex1, String hex2) {
+        // Convert both hex strings to integers
+        int num1 = Integer.parseInt(hex1, 16);
+        int num2 = Integer.parseInt(hex2, 16);
+
+        // Perform XOR operation
+        int result = num1 ^ num2;
+
+        // Convert result back to hex and return as string
+        return Integer.toHexString(result).toUpperCase();
+    }
+
+    // Dummy NibbleSubValue function for substitution (replace with actual
+    // implementation)
+    private String nibbleSubValue(String hex) {
+        // For example, perform some nibble substitution here
+        // Replace with actual substitution logic
+        return Integer.toHexString((Integer.parseInt(hex, 16) + 1) % 16).toUpperCase();
+    }
+
+    public void ExtractRoundKeys(String[] words) {
+        String[][] keys = new String[2][2];
+
+        for (int i = 0; i < keys.length; i++) {
+            for (int j = 0; j < keys[i].length; j++) {
+
+            }
+        }
+
+    }
+
+    // Method to convert Matrix to Array
+    public Integer[][] Encryption() {
+
+        int rounds = 0;
+        String[] geenratedWords = KeyGeneration(Key);
+
+        // round zero
+        // Add sub key phase
+        System.out.println("ROUND ZERO:");
+        Integer[][] addSubResult = addSubKey(plainText, Key);
+        rounds++;
+        // ROUND ONE
+        String[][] keynOne = { { geenratedWords[4], geenratedWords[6] }, { geenratedWords[5], geenratedWords[7] } };
+        // Nibble substitution
+        String[][] NibbleSubResult = NibbleSub(castToString(addSubResult));
+        // shift Rows
+        String[][] shiftRowResult = shiftRows(NibbleSubResult);
+        // mix Columns Result
+        int[][] MixColumnsResult = MixColumns(shiftRowResult, ConstantMatrix);
+        addSubResult = addSubKey(castToString(castToInteger(MixColumnsResult)), keynOne);
+        rounds++;
+        // ROUND TWO
+        String[][] KeyTwo = { { geenratedWords[8], geenratedWords[10] }, { geenratedWords[9], geenratedWords[11] } };
+        NibbleSubResult = NibbleSub(castToString(addSubResult));
+        shiftRowResult = shiftRows(NibbleSubResult);
+        addSubResult = addSubKey(shiftRowResult, KeyTwo);
+
+        Integer[][] CipherText = addSubResult;
+        return CipherText;
+
+    }
+
+    public Integer[][] Decryption(Integer[][] cipherText) {
+
+        int rounds = 0;
+        String[] generatedWords = KeyGeneration(Key);
+        String[][] keynOne = { { generatedWords[4], generatedWords[6] }, { generatedWords[5], generatedWords[7] } };
+
+        String[][] KeyTwo = { { generatedWords[8], generatedWords[10] }, { generatedWords[9], generatedWords[11] } };
+
+        Integer[][] addSubResult = addSubKey(castToString(cipherText), KeyTwo);
+        rounds++;
+
+        String[][] invShiftRows = shiftRows(castToString(addSubResult));
+
+        String[][] invNiblleSub = INVNibbleSub(invShiftRows);
+
+        addSubResult = addSubKey(invNiblleSub, keynOne);
+
+        int[][] invMixColumns = MixColumns(castToString(addSubResult), ConstantMatrix);
+        invShiftRows = shiftRows(castToString(castToInteger(invMixColumns)));
+        invNiblleSub = INVNibbleSub(invShiftRows);
+        addSubResult = addSubKey(invNiblleSub, Key);
+        rounds++;
+
+        Integer[][] decryptedText = addSubResult;
+        return decryptedText;
     }
 
     public static void main(String[] args) {
         AES miniAES = new AES();
-        String[][] ConstantMatrix = {
-                { "2", "3" },
-                { "3", "2" }
-        };
-        // Convert PlainText and Key to binary and apply AddRoundKey
-        Integer[][] xorResult = miniAES.addSubKey(miniAES.plainText, miniAES.Key);
-        // Substitute using NibbleSub transformation
-        System.out.println("\nNibble Sub result:");
-        String[][] nibbleSubResult = miniAES.NibbleSub(miniAES.plainText);
-        // Shift row
-        System.out.println("\nShift Rows result:");
-        String[][] shiftRowsResult = miniAES.shiftRows(nibbleSubResult);
-
-        System.out.println("\n Mix Colums result:");
-        miniAES.MixColumns(shiftRowsResult, ConstantMatrix);
+        Integer[][] cypherText = miniAES.Encryption();
+        System.out.println("Decription...... ");
+        Integer[][] PlainText = miniAES.Decryption(cypherText);
 
     }
 
 }
-
-// Result of xor operation column by column
-// 1010 1001 0010 0100
-// 1011 0010 1100 0010
-// -------------------------
-// 0001 1011 1110 0110
