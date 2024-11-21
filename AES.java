@@ -1,53 +1,10 @@
-/*
-    Implementation of a 16-bit Mini-AES Algorithm
-    ------------------------------------------------
-    Author: [Benhatta mokhttar]
-    Date: [20-10.2024]
 
-    OVERVIEW:
-    This algorithm is a simplified, 16-bit version of the AES (Advanced Encryption Standard) algorithm. 
-    Designed to mimic the steps of the 128-bit AES, this miniature version follows the same core stages 
-    (SubBytes, ShiftRows, MixColumns, and AddRoundKey) but with a smaller S-Box table and key size 
-    for easier understanding and testing. AES is a symmetric encryption algorithm widely used in various 
-    security applications and protocols (e.g., TLS, VPNs, file encryption). 
-
-    OBJECTIVE:
-    The goal is to implement a basic 16-bit version of AES without any external help from the web or AI 
-    to fully understand the principles of the AES cipher. Once a working version is complete, the focus 
-    will shift to optimizing and analyzing the algorithm’s complexity for improved performance.
-
-    AES KEY VARIANTS:
-    Standard AES comes in three key sizes: 
-      - AES-128 (128-bit key)
-      - AES-192 (192-bit key)
-      - AES-256 (256-bit key)
-    Each version undergoes multiple transformation rounds depending on the key size, offering a balance 
-    of security and performance suited for different applications. This 16-bit Mini-AES implementation 
-    provides a simplified learning approach to grasp the algorithm’s structure before progressing to full-scale AES.
-
-    NOTE:
-    This Mini-AES lacks certain security elements of the full AES and is not suitable for real-world 
-    security applications. Its purpose is purely educational to demonstrate the steps of a block cipher.
-
-    STRUCTURE:
-    - Initial Key Expansion: Generates subkeys used in each round.
-    - SubBytes Transformation: Uses an S-Box substitution to enhance non-linearity.
-    - ShiftRows Transformation: Row shifting to provide diffusion.
-    - MixColumns Transformation: Matrix multiplication in GF(2^4) (for educational simplification).
-    - AddRoundKey: XOR operation between the current state and subkeys.
-    
-    FUTURE WORK:
-    - Improve computational complexity by optimizing loops and data handling.
-    - Extend to larger block sizes (e.g., 32 or 64 bits) before moving to 128-bit AES.
-    - Evaluate and implement side-channel resistance strategies.
-*/
+// BENHATTA MOKHTTAR  MINI-AES IMPLEMENTATION  MASTER CYBER SECURITY 
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class AES {
-    // TODO make it work column column now it working line by line (just do j insted
-    // of i)
 
     // mini aes only two rounds,key is a 16 bits length;
     int roundes = 2;
@@ -60,7 +17,6 @@ public class AES {
     String[][] s_boxValue = new String[2][2];
     // Plain text matrx
     String[][] plainText = { { "9", "6" }, { "C", "3" } };
-
     // key matrix
     String[][] Key = { { "C", "F" }, { "3", "0" } };
     // Constant Matrix for mixColumns
@@ -111,6 +67,7 @@ public class AES {
             System.out.println();
         }
         return resultMatrix;
+
     }
 
     public int multiplyInGF(int a, int b) {
@@ -189,7 +146,7 @@ public class AES {
                 resultMatrix[i][j] = plainTextBinary[i][j] ^ keyBinary[i][j];
             }
         }
-        System.out.println("Result of Add Sub Round Key is:");
+
         for (int i = 0; i < resultMatrix.length; i++) {
             for (int j = 0; j < resultMatrix[i].length; j++) {
                 System.out.print("" + Integer.toHexString(resultMatrix[i][j]).toUpperCase());
@@ -304,7 +261,6 @@ public class AES {
         if (NibbleSubTable.containsKey(current_value)) {
             value = NibbleSubTable.get(current_value);
         }
-        System.out.println(value);
         return value;
     }
 
@@ -368,9 +324,7 @@ public class AES {
         }
         // First round keys
         String r1 = xorHex(words[0], NibbleSubValue(words[3]));
-        System.out.println(r1);
         String r2 = xorHex(r1, reconOne);
-        System.out.println(r2);
 
         words[4] = r2;
         words[5] = xorHex(words[1], words[4]);
@@ -379,20 +333,12 @@ public class AES {
 
         // Second round keys
         String r3 = xorHex(words[4], NibbleSubValue(words[7]));
-        System.out.println(r3);
         String r4 = xorHex(r3, reconTwo);
-        System.out.println(r4);
 
         words[8] = r4;
         words[9] = xorHex(words[5], words[8]);
         words[10] = xorHex(words[6], words[9]);
         words[11] = xorHex(words[7], words[10]);
-
-        // Display generated keys
-        System.out.println("Generated Keys:");
-        for (int i = 0; i < words.length; i++) {
-            System.out.println("Word " + i + ": " + words[i]);
-        }
 
         return words;
 
@@ -406,7 +352,6 @@ public class AES {
                 result[i][j] = Integer.toHexString(matrix[i][j]).toUpperCase();
             }
         }
-
         return result;
     }
 
@@ -435,14 +380,6 @@ public class AES {
         return Integer.toHexString(result).toUpperCase();
     }
 
-    // Dummy NibbleSubValue function for substitution (replace with actual
-    // implementation)
-    private String nibbleSubValue(String hex) {
-        // For example, perform some nibble substitution here
-        // Replace with actual substitution logic
-        return Integer.toHexString((Integer.parseInt(hex, 16) + 1) % 16).toUpperCase();
-    }
-
     public void ExtractRoundKeys(String[] words) {
         String[][] keys = new String[2][2];
 
@@ -462,9 +399,11 @@ public class AES {
 
         // round zero
         // Add sub key phase
-        System.out.println("ROUND ZERO:");
+        System.out.println("ROUND ZERO:----------------------------------------->");
+        System.out.println("Result of Add Sub Round Key (ROUND ZERO) is:");
         Integer[][] addSubResult = addSubKey(plainText, Key);
         rounds++;
+        System.out.println("ROUND ONE:----------------------------------------->");
         // ROUND ONE
         String[][] keynOne = { { geenratedWords[4], geenratedWords[6] }, { geenratedWords[5], geenratedWords[7] } };
         // Nibble substitution
@@ -473,12 +412,15 @@ public class AES {
         String[][] shiftRowResult = shiftRows(NibbleSubResult);
         // mix Columns Result
         int[][] MixColumnsResult = MixColumns(shiftRowResult, ConstantMatrix);
+        System.out.println("Result of Add Sub Round Key is(BEFORE ROUND TWO):");
         addSubResult = addSubKey(castToString(castToInteger(MixColumnsResult)), keynOne);
         rounds++;
         // ROUND TWO
+        System.out.println("ROUND TWO----------------------------------------->");
         String[][] KeyTwo = { { geenratedWords[8], geenratedWords[10] }, { geenratedWords[9], geenratedWords[11] } };
         NibbleSubResult = NibbleSub(castToString(addSubResult));
         shiftRowResult = shiftRows(NibbleSubResult);
+        System.out.println("The Cipher text is :(Last Round)");
         addSubResult = addSubKey(shiftRowResult, KeyTwo);
 
         Integer[][] CipherText = addSubResult;
@@ -493,19 +435,21 @@ public class AES {
         String[][] keynOne = { { generatedWords[4], generatedWords[6] }, { generatedWords[5], generatedWords[7] } };
 
         String[][] KeyTwo = { { generatedWords[8], generatedWords[10] }, { generatedWords[9], generatedWords[11] } };
-
+        System.out.println("ROUND ZERO OF DECRIPTION:----------------------------------------->");
         Integer[][] addSubResult = addSubKey(castToString(cipherText), KeyTwo);
         rounds++;
-
+        System.out.println("ROUND ONE OF DECRIPTION:----------------------------------------->");
         String[][] invShiftRows = shiftRows(castToString(addSubResult));
 
         String[][] invNiblleSub = INVNibbleSub(invShiftRows);
 
         addSubResult = addSubKey(invNiblleSub, keynOne);
-
+        System.out.println("ROUND TWO OF DECRIPTION:----------------------------------------->");
         int[][] invMixColumns = MixColumns(castToString(addSubResult), ConstantMatrix);
         invShiftRows = shiftRows(castToString(castToInteger(invMixColumns)));
         invNiblleSub = INVNibbleSub(invShiftRows);
+        System.out.println("PLAIN TEXT :----------------------------------------->");
+
         addSubResult = addSubKey(invNiblleSub, Key);
         rounds++;
 
@@ -514,9 +458,13 @@ public class AES {
     }
 
     public static void main(String[] args) {
+
+        // NOTE THE PLAIN TEXT,MATRIX,CONSTANT MATRIX ARE IN THE FIRST LINE OF THE
+        // CODE(GLOBAL VARIABLE)
         AES miniAES = new AES();
+        System.out.println("--------------------------------Encryption--------------------------------");
         Integer[][] cypherText = miniAES.Encryption();
-        System.out.println("Decription...... ");
+        System.out.println("--------------------------------Decription--------------------------------");
         Integer[][] PlainText = miniAES.Decryption(cypherText);
 
     }
