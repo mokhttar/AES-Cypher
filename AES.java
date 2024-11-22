@@ -1,8 +1,19 @@
 
 // BENHATTA MOKHTTAR  MINI-AES IMPLEMENTATION  MASTER CYBER SECURITY 
 
+//WORK DONE :MINI AES 16 BITS.
+//           -Completed (NibbleSub,ShiftRows,AddSubKey,MixColumns)
+//           -Completed Generate randomly a secret key of 16-bits (4 numbers between 0 and 15)
+//           -Completed Compute the two round keys
+//           -The code takes a plain text and Devide it into blocks of  16 bits
+//           -Completed InvSubbbox
+//           -Completed Encryption
+//           -Completed Decryption
+//           -The exempple that in the code is:Consider the plaintext “9C639C62”, encrypt it with the secret key “C3F0”
+//           -Completed:Generate randomly an initialization vector (IV) of 16-bits.   
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class AES {
 
@@ -13,10 +24,7 @@ public class AES {
     HashMap<String, String> NibbleSubTable = new HashMap<String, String>();
     // hash map have the decimal value with the value into binary
     HashMap<String, Integer> BinaryValue = new HashMap<String, Integer>();
-
     String[][] s_boxValue = new String[2][2];
-    // Plain text matrx
-    String[][] plainText = { { "9", "6" }, { "C", "3" } };
     // key matrix
     String[][] Key = { { "C", "F" }, { "3", "0" } };
     // Constant Matrix for mixColumns
@@ -34,6 +42,77 @@ public class AES {
                 // the test of the binary
                 System.out.println(matrix[i][j]);
             }
+        }
+    }
+
+    public static int[] generateSecretKey() {
+        Random random = new Random();
+        int[] secretKey = new int[4];
+
+        for (int i = 0; i < 4; i++) {
+            secretKey[i] = random.nextInt(16);
+        }
+
+        return secretKey;
+    }
+
+    // function to devise plain text into blocks of 16-bits
+    public String[] DevideIntoBlock(String PlainText) {
+        // Input: Plain Text String
+        // Output: Matrices, each one 16 bits (4 characters per block)
+        int blockCount = (int) Math.ceil((double) PlainText.length() / 4);
+        char[] blocks = PlainText.toCharArray();
+
+        String[] blockContent = new String[blockCount];
+        for (int i = 0; i < blockContent.length; i++) {
+            blockContent[i] = "";
+        }
+
+        for (int i = 0; i < blocks.length; i++) {
+            int currentBlock = i / 4;
+            blockContent[currentBlock] += blocks[i];
+        }
+        for (int i = 0; i < blockContent.length; i++) {
+            System.out.println("Block " + (i + 1) + ": " + blockContent[i]);
+        }
+        return blockContent;
+    }
+
+    // function to transform Block to matrix's
+    public String[][][] createMatricesForBlocks(String plainText) {
+        int blockSize = 4; // Each block contains 4 characters
+        int matrixCount = (int) Math.ceil((double) plainText.length() / blockSize);
+        String[][][] matrices = new String[matrixCount][2][2];
+
+        char[] chars = plainText.toCharArray();
+        int index = 0;
+
+        for (int i = 0; i < matrixCount; i++) {
+            for (int col = 0; col < 2; col++) {
+                for (int row = 0; row < 2; row++) {
+                    if (index < chars.length) {
+                        matrices[i][row][col] = String.valueOf(chars[index]);
+                    } else {
+                        matrices[i][row][col] = "0";
+                    }
+                    index++;
+                }
+            }
+        }
+
+        return matrices;
+    }
+
+    public void displayMatrices(String[][][] matrices) {
+        for (int i = 0; i < matrices.length; i++) {
+            System.out.println("Block " + (i + 1) + ":");
+            for (int row = 0; row < 2; row++) {
+                for (int col = 0; col < 2; col++) {
+                    System.out.print(matrices[i][row][col] + " ");
+                }
+                System.out.println();
+            }
+            // System.out.println();
         }
     }
 
@@ -90,11 +169,11 @@ public class AES {
 
     // Helper function to convert hex string to polynomial binary representation
     private String hexToPolynomial(String hexValue) {
-        // Convert hex to integer
+
         int decimal = Integer.parseInt(hexValue, 16);
-        // Convert integer to binary string and pad to 4 bits
+
         String binary = Integer.toBinaryString(decimal);
-        return String.format("%4s", binary).replace(' ', '0'); // Ensure 4-bit length
+        return String.format("%4s", binary).replace(' ', '0');
     }
 
     // THe input is the matrix the plain text or the key we are tranforming the
@@ -136,8 +215,8 @@ public class AES {
     // to pass it to NibbleSub funciton
     // Done (Phase one of the algorithme )
     public Integer[][] addSubKey(String[][] plainText, String[][] key) {
-        Integer[][] plainTextBinary = toBinary(plainText); // Convert plain text to binary integers
-        Integer[][] keyBinary = toBinary(key); // Convert key to binary integers
+        Integer[][] plainTextBinary = toBinary(plainText);
+        Integer[][] keyBinary = toBinary(key);
 
         Integer[][] resultMatrix = new Integer[plainTextBinary.length][plainTextBinary[0].length];
 
@@ -180,9 +259,9 @@ public class AES {
 
         String result[][] = new String[2][2];
         for (int i = 0; i < value.length; i++) {
-            for (int j = 0; j < value[i].length; j++) { // Corrected the loop to match the actual columns
+            for (int j = 0; j < value[i].length; j++) {
                 String current_value = value[i][j];
-                // Using equals to compare the current value with the key in the NibbleSubTable
+
                 if (NibbleSubTable.containsKey(current_value.toString())) {
                     result[i][j] = NibbleSubTable.get(current_value);
                 }
@@ -220,9 +299,9 @@ public class AES {
 
         String result[][] = new String[2][2];
         for (int i = 0; i < value.length; i++) {
-            for (int j = 0; j < value[i].length; j++) { // Corrected the loop to match the actual columns
+            for (int j = 0; j < value[i].length; j++) {
                 String current_value = value[i][j];
-                // Using equals to compare the current value with the key in the NibbleSubTable
+
                 if (NibbleSubTable.containsValue(current_value.toString())) {
                     result[i][j] = NibbleSubTable.get(current_value);
                 }
@@ -344,7 +423,6 @@ public class AES {
 
     }
 
-    // method to cast Integer[][] to Stringp[][]
     public String[][] castToString(Integer[][] matrix) {
         String[][] result = new String[matrix.length][matrix.length];
         for (int i = 0; i < matrix.length; i++) {
@@ -355,7 +433,6 @@ public class AES {
         return result;
     }
 
-    // method to cast int to Integer[][]
     public Integer[][] castToInteger(int[][] matrix) {
         Integer[][] castResult = new Integer[matrix.length][matrix.length];
         for (int i = 0; i < matrix.length; i++) {
@@ -367,16 +444,13 @@ public class AES {
         return castResult;
     }
 
-    // XOR two hexadecimal strings
     private String xorHex(String hex1, String hex2) {
-        // Convert both hex strings to integers
+
         int num1 = Integer.parseInt(hex1, 16);
         int num2 = Integer.parseInt(hex2, 16);
 
-        // Perform XOR operation
         int result = num1 ^ num2;
 
-        // Convert result back to hex and return as string
         return Integer.toHexString(result).toUpperCase();
     }
 
@@ -392,7 +466,7 @@ public class AES {
     }
 
     // Method to convert Matrix to Array
-    public Integer[][] Encryption() {
+    public Integer[][] Encryption(String[][] PlainText) {
 
         int rounds = 0;
         String[] geenratedWords = KeyGeneration(Key);
@@ -401,7 +475,7 @@ public class AES {
         // Add sub key phase
         System.out.println("ROUND ZERO:----------------------------------------->");
         System.out.println("Result of Add Sub Round Key (ROUND ZERO) is:");
-        Integer[][] addSubResult = addSubKey(plainText, Key);
+        Integer[][] addSubResult = addSubKey(PlainText, Key);
         rounds++;
         System.out.println("ROUND ONE:----------------------------------------->");
         // ROUND ONE
@@ -428,6 +502,12 @@ public class AES {
 
     }
 
+    public String generateRandomIV() {
+        Random random = new Random();
+        int iv = random.nextInt(0xFFFF + 1);
+        return String.format("%04X", iv);
+    }
+
     public Integer[][] Decryption(Integer[][] cipherText) {
 
         int rounds = 0;
@@ -448,7 +528,7 @@ public class AES {
         int[][] invMixColumns = MixColumns(castToString(addSubResult), ConstantMatrix);
         invShiftRows = shiftRows(castToString(castToInteger(invMixColumns)));
         invNiblleSub = INVNibbleSub(invShiftRows);
-        System.out.println("PLAIN TEXT :----------------------------------------->");
+        System.out.println("PLAIN TEXT For The  Round  :----------------------------------------->");
 
         addSubResult = addSubKey(invNiblleSub, Key);
         rounds++;
@@ -457,16 +537,46 @@ public class AES {
         return decryptedText;
     }
 
-    public static void main(String[] args) {
-
-        // NOTE THE PLAIN TEXT,MATRIX,CONSTANT MATRIX ARE IN THE FIRST LINE OF THE
-        // CODE(GLOBAL VARIABLE)
-        AES miniAES = new AES();
-        System.out.println("--------------------------------Encryption--------------------------------");
-        Integer[][] cypherText = miniAES.Encryption();
-        System.out.println("--------------------------------Decription--------------------------------");
-        Integer[][] PlainText = miniAES.Decryption(cypherText);
-
+    public void displayMatrix(Integer[][] matrix) {
+        for (Integer[] row : matrix) {
+            for (Integer value : row) {
+                System.out.print(String.format("%02X ", value));
+            }
+            System.out.println();
+        }
+        System.out.println();
     }
 
+    public static void main(String[] args) {
+
+        AES miniAES = new AES();
+        String text = "9C63C62";
+        String cypherResult = "";
+        // KEY IS String[][] Key = { { "C", "F" }, { "3", "0" } }; IT A GLOBAL VARIAVLE
+        // LOOK UP IN THE FIRST LINES OF THE CODE
+        String[][][] matrices = miniAES.createMatricesForBlocks(text);
+        miniAES.displayMatrices(matrices);
+
+        for (int matrixIndex = 0; matrixIndex < matrices.length; matrixIndex++) {
+            System.out.println(
+                    "---------------------------------------------------------------------Crypting  Block Number  "
+                            + matrixIndex
+                            + " --------------------------------------------------------------------------");
+            System.out.println();
+            String[][] currentMatrix = matrices[matrixIndex];
+            // Encrypt the Integer matrix
+            Integer[][] cypherText = miniAES.Encryption(currentMatrix);
+            // Display the encrypted block
+            System.out.println("Encrypted Block " + (matrixIndex + 1) + ":");
+            miniAES.displayMatrix(cypherText);
+            System.out.println(
+                    "---------------------------------------------------------------------Decrypting  Block Number  "
+                            + matrixIndex
+                            + " --------------------------------------------------------------------------");
+            Integer[][] PlainText = miniAES.Decryption(cypherText);
+            System.out.println("Decrypted Block " + (matrixIndex + 1) + ":");
+            miniAES.displayMatrix(PlainText);
+        }
+
+    }
 }
